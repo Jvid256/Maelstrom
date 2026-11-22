@@ -1,0 +1,9 @@
+# Godot 4 editor cache and build output (rebuilt when the project is opened)
+.godot/
+/android/
+*.translation
+export/
+build/
+*.tmp
+.DS_Store
+Thumbs.db

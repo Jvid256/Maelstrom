@@ -1,0 +1,1 @@
+Drop transparent feature sprites here, anchored bottom-center, e.g. tree.png, house.png, pillar.png, ruin.png, rocks.png, felled_tower.png, stump_tower.png, dunes.png, bones.png, dead_tree.png, ice.png, frozen_house.png.
