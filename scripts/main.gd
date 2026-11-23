@@ -157,10 +157,10 @@ func new_game() -> void:
 	if _scripted:
 		return
 	hud.screens.say("The Oracleborn", [
-		"For as long as anyone in town remembers, the pillar in the square has stood dead.",
-		"This morning it hummed. When he laid his hand on it, the fog at the edge of town drew back, and the ground beneath held still.",
-		"It can hold land now. Out in the fog are pieces of other worlds, drifting. Some of them the townspeople lost.",
-	], func() -> void: hud.banner("Talk to the town first (Town button or T).", 4.0))
+		"For as long as anyone in town can remember, the stone pillar in the square has been silent.",
+		"But this morning, it began to hum. When the Oracleborn touched it, the fog pulled back from the edge of town, and the ground stopped moving.",
+		"...It can hold land now? Out in the fog, pieces of other worlds are drifting. Some of them belong to the people of this town.",
+	], func() -> void: hud.banner("Talk to the townspeople first (Town button or T).", 4.0))
 
 
 func hero() -> HeroState:
@@ -409,7 +409,7 @@ func _check_laws() -> void:
 			Documenter.remark("law", active, rng, day)
 			heroes["engineer"].unlock_slot("charm")
 			hud.screens.say("The Documenter", [
-				"New entry in the Book of Laws: %s. I've been looking forward to writing this one." % Story.LAWS[w]["name"],
+				"New entry in the Book of Laws: %s! I've been looking forward to writing this one." % Story.LAWS[w]["name"],
 				Story.LAWS[w]["text"],
 			], Callable())
 
@@ -420,7 +420,7 @@ func _release(pos: Vector2i) -> void:
 	map.rebuild_all()
 	if owner == "gunslinger":
 		stock["parts"] += 1
-		hud.banner("Released. The tether's coupling is recovered; the land drifts back into the fog.")
+		hud.banner("Released. You recover the tether's coupling, and the land drifts back into the fog.")
 	else:
 		hud.banner("Released. The land drifts back into the fog.")
 	_refresh_hud()
@@ -433,7 +433,7 @@ func _start_expedition(to: Vector2i) -> void:
 		hud.banner("%s is injured: 60%% health this trip. Rest in town first if you can." % hero().short_name(), 4.0)
 	route = map.route_to(to, active)
 	if route.size() < 2:
-		hud.banner("No way through the fog to there.")
+		hud.banner("There's no way through the fog to get there.")
 		return
 	target = to
 	waypoints.clear()
@@ -839,7 +839,7 @@ func _make_camp(k: int) -> void:
 	camps_made += 1
 	_in_camp = true
 	if _first("hint_camp"):
-		hud.banner("Every three stretches of road the hero makes camp, and a day passes: at home too. Two things to do before you sleep.", 5.0)
+		hud.banner("Every three stretches of road, you make camp and a day passes, at home too. You can do two things before you sleep.", 5.0)
 	var was := mode
 	mode = "battle"  # holds the hero still
 	advance_day(true)
@@ -865,7 +865,7 @@ func _camp_menu(night: Dictionary) -> void:
 		if not used.has("dress"):
 			options.append({"id": "dress", "label": "Dress your wounds: +5 health"})
 		if not used.has("forage"):
-			options.append({"id": "forage", "label": "Forage %s for what it has (the noise carries)" % world_name})
+			options.append({"id": "forage", "label": "Forage in %s (others may hear you)" % world_name})
 		if not used.has("make") and _have("salvage", 3):
 			options.append({"id": "make", "label": "Make a supply from scrap (3 salvage)"})
 		if not used.has("scout") and night["k"] < route.size() - 2:
@@ -873,24 +873,24 @@ func _camp_menu(night: Dictionary) -> void:
 		if not used.has("hero"):
 			match active:
 				"oracle":
-					options.append({"id": "hero", "label": "Read the embers: +2 Foresight, and you'll know when to wake"})
+					options.append({"id": "hero", "label": "Read the embers: +2 Foresight, and wake before danger arrives"})
 				"engineer":
 					if _have("reagents", 1):
 						options.append({"id": "hero", "label": "Let the swarm mend you (1 reagent): +10 health"})
 				"gunslinger":
-					options.append({"id": "hero", "label": "Clean and load: your next fight opens with a shot already in"})
+					options.append({"id": "hero", "label": "Clean and load: fire the first shot in your next fight"})
 	var watch_fx: Array = {"oracle": ["+1 Foresight", {"fs": 1}], "gunslinger": ["+1 charge", {"fs": 1}], "engineer": ["+3 experience", {"xp": 3}]}[active]
-	options.append({"id": "watch", "label": "Keep watch till dawn (%s; the night is less likely to find you)" % watch_fx[0], "fx": watch_fx[1]})
+	options.append({"id": "watch", "label": "Keep watch until dawn (%s; less likely to be surprised)" % watch_fx[0], "fx": watch_fx[1]})
 	options.append({"id": "sleep", "label": "Sleep: +3 health"})
-	var head := "Camp on the road through %s. Day %d. The fire is small and the dark is not." % [world_name, day]
+	var head := "You make camp on the road through %s. Day %d. The fire is small, and the dark is huge." % [world_name, day]
 	if left == 3:
 		head += " The mess hall's rations go further than road food: three things before you sleep."
 	elif left == 2 and night["actions"] == 3 and night["used"].size() == 1:
-		head = "The fire's settled. Time for two more things before you sleep."
+		head = "The fire's burning steady. There's time for two more things before you sleep."
 	elif left == 1:
-		head = "The fire's settled. Time for one more thing before you sleep."
+		head = "The fire's burning steady. There's time for one more thing before you sleep."
 	elif left == 0:
-		head = "That's all the night has room for. Watch, or sleep."
+		head = "It's getting late. Keep watch, or get some sleep?"
 	hud.screens.choice("Camp", head, options, func(i: int) -> void:
 		_camp_act(night, options[i]))
 
@@ -902,10 +902,10 @@ func _camp_act(night: Dictionary, opt: Dictionary) -> void:
 		"rest":
 			supplies -= 1
 			_heal(12)
-			text = "You eat properly and sleep an hour by the fire. It helps more than you expected."
+			text = "You eat a real meal and nap by the fire for an hour. You feel much better!"
 		"dress":
 			_heal(5)
-			text = "You clean what needs cleaning and bind what needs binding."
+			text = "You clean your wounds and wrap them up properly."
 		"forage":
 			var res: Array = [Worlds.world(night["world"]).get("yield", "salvage"), Worlds.world(night["world"]).get("yield", "salvage"), "salvage", "food"]
 			var got := {}
@@ -915,11 +915,11 @@ func _camp_act(night: Dictionary, opt: Dictionary) -> void:
 			for r in got:
 				loot[r] = loot.get(r, 0) + got[r]
 			night["chance"] = float(night["chance"]) + 0.2
-			text = "You go out past the firelight and come back with %s. Something out there heard you." % _gain_text(got).strip_edges()
+			text = "You search beyond the firelight and come back with %s. ...But something out there heard you." % _gain_text(got).strip_edges()
 		"make":
 			_spend("salvage", 3)
 			supplies += 1
-			text = "Scrap, cord and patience: one more supply for the road."
+			text = "With some scrap, cord, and patience, you put together one more supply."
 		"scout":
 			text = _scout_ahead(night["k"])
 		"hero":
@@ -927,20 +927,20 @@ func _camp_act(night: Dictionary, opt: Dictionary) -> void:
 				"oracle":
 					foresight = mini(hero().stats()["fs"] + 2, foresight + 2)
 					night["chance"] = float(night["chance"]) * 0.5
-					text = "In the embers, the shapes of tonight. You'll wake before anything reaches the fire."
+					text = "You see the night's shapes in the embers. If anything comes, you'll wake before it reaches the fire."
 				"engineer":
 					_spend("reagents", 1)
 					_heal(10)
 					hero().gain_xp(2)
-					text = "The swarm works through the night. By morning the worst of it has closed."
+					text = "The swarm works through the night. By morning, the worst of your wounds have closed."
 				"gunslinger":
 					_buffs["loaded"] = 0.25
 					hero().charge = mini(9, hero().charge + 1)
-					text = "You strip the guns down by firelight and put them back together. Whatever comes next, you'll speak first."
+					text = "You take the guns apart by firelight and put them back together. Whatever comes next, you'll shoot first."
 		"watch":
 			_apply_effects(opt["fx"])
 			night["chance"] = float(night["chance"]) * 0.5
-			text = "You sit up with your back to the fire and watch the dark watch you."
+			text = "You sit with your back to the fire and keep your eyes on the dark. ...It feels like the dark is watching back."
 		"sleep":
 			_heal(3)
 			text = "Thin sleep, full of the road."
@@ -1000,8 +1000,8 @@ func _scout_ahead(k: int) -> String:
 	_buffs["scouted"] = true
 	map.refresh_notes()
 	if seen.is_empty():
-		return "You climb what high ground there is and look along the road. Nothing waiting on it, as far as the light reaches. The way looks clear."
-	return "You climb what high ground there is and look along the road. Waiting on it: %s. You mark the ground around them; you'll know where to step." % ", then ".join(seen)
+		return "You climb to higher ground and look down the road. Nothing's waiting, as far as you can see. The way looks clear."
+	return "You climb to higher ground and look down the road. Waiting ahead: %s. You note the ground around them, so you'll know where to step." % ", then ".join(seen)
 
 
 # ------------------------------------------------------------------ meeting what waits on the road
@@ -1022,22 +1022,22 @@ func _approach(k: int) -> void:
 	var slip := SLIP_CHANCE + (0.25 if _buffs.has("scouted") else 0.0) + (0.05 * foresight if active == "oracle" else 0.0)
 	slip = minf(0.9, slip)
 	var options := [{"id": "fight", "label": "Meet it head on"}]
-	options.append({"id": "slip", "label": "Slip past in the dark (%d%%; if it sees you, it strikes first)" % int(slip * 100)})
+	options.append({"id": "slip", "label": "Sneak past (%d%%; if it spots you, it attacks first)" % int(slip * 100)})
 	match active:
 		"oracle":
 			if foresight > 0:
-				options.append({"id": "edge", "label": "Foresee its first move (1 Foresight): it opens badly hurt"})
+				options.append({"id": "edge", "label": "Foresee its first move (1 Foresight): start the fight with it badly hurt"})
 		"engineer":
 			if _have("parts", 1):
-				options.append({"id": "edge", "label": "Set a turret in its path (1 Part): it walks into fire"})
+				options.append({"id": "edge", "label": "Set a turret in its path (1 Part): it walks right into the fire"})
 		"gunslinger":
 			if hero().charge > 0:
-				options.append({"id": "edge", "label": "Take the first shot (1 charge): the weak ones won't get up"})
+				options.append({"id": "edge", "label": "Take the first shot (1 charge): weak enemies go down instantly"})
 	options.append({"id": "back", "label": "Turn back for home"})
 	var danger := threat(ids)
-	var text := "On the road ahead: %s. %s seen your light. %s" % [names, "They've" if ids.size() > 1 else "It has", THREAT_WORDS[danger]]
+	var text := "Up ahead on the road: %s! %s spotted your light. %s" % [names, "They've" if ids.size() > 1 else "It's", THREAT_WORDS[danger]]
 	if _first("hint_enemy"):
-		text += " There's no going round it on this road, but there's more than one way to meet it."
+		text += " There's no way around it on this road. How do you want to handle it?"
 	Documenter.remark("approach", active, rng, day)
 	hud.screens.choice("", text, options, func(i: int) -> void:
 		mode = was
@@ -1050,22 +1050,22 @@ func _approach(k: int) -> void:
 				if rng.randf() < slip:
 					_encounters.erase(k)
 					way.clear_encounter(k)
-					hud.banner("You keep to the dark, and it never turns its head.", 3.0)
+					hud.banner("You stay in the shadows. It never even turns its head.", 3.0)
 					Documenter.remark("slipped", active, rng, day)
 				else:
 					var hit := maxi(2, int(hero().stats()["hp"] * 0.12))
 					hero_hp = maxi(1, hero_hp - hit)
-					hud.banner("It sees you. It strikes first (-%d health)." % hit, 3.0)
+					hud.banner("It spotted you! It attacks first (-%d health)." % hit, 3.0)
 					Documenter.remark("caught", active, rng, day)
 			"edge":
 				Documenter.remark("edge", active, rng, day)
 				match active:
 					"oracle":
 						foresight -= 1
-						_opening = {"wound": 0.3, "note": "Foreseen: you struck where it was going to be."}
+						_opening = {"wound": 0.3, "note": "Foreseen! You struck where it was about to be."}
 					"engineer":
 						_spend("parts", 1)
-						_opening = {"wound": 0.35, "note": "It walked into the turret's fire."}
+						_opening = {"wound": 0.35, "note": "It walked right into the turret's fire!"}
 					"gunslinger":
 						hero().charge -= 1
 						var left := []
@@ -1075,12 +1075,12 @@ func _approach(k: int) -> void:
 						if left.is_empty():
 							_encounters.erase(k)
 							way.clear_encounter(k)
-							hud.banner("One shot each. Nothing gets up.", 3.0)
+							hud.banner("One shot each. Nothing gets back up.", 3.0)
 						else:
 							_encounters[k] = left
 							_opening = {"wound": 0.3, "note": "She spoke first."}
 							if left.size() < ids.size():
-								hud.banner("The weak one drops. The other keeps coming.", 3.0)
+								hud.banner("The weak one drops! The other keeps coming.", 3.0)
 			"back":
 				_return_home("retreat")
 				return
@@ -1146,7 +1146,7 @@ func threat(ids: Array) -> int:
 	return 0
 
 
-const THREAT_WORDS := ["It looks manageable.", "Be wary.", "This one is dangerous.", "This could kill you."]
+const THREAT_WORDS := ["Looks manageable.", "Be careful.", "This one's dangerous!", "This could kill you!"]
 
 
 ## B on the road: a supply for a little health.
@@ -1156,7 +1156,7 @@ func bandage() -> void:
 			hud.banner("No supplies left to bandage with.", 2.0)
 		return
 	if hero_hp >= hero().stats()["hp"]:
-		hud.banner("Nothing that needs binding.", 2.0)
+		hud.banner("You're not hurt. No need for bandages.", 2.0)
 		return
 	supplies -= 1
 	_heal(BANDAGE_HP)
@@ -1181,11 +1181,11 @@ func _toggle_waypoint(pos: Vector2i) -> void:
 	var r := _plan_route()
 	if r.is_empty():
 		waypoints.erase(pos)
-		hud.banner("No way through the fog to there.", 2.5)
+		hud.banner("There's no way through the fog to get there.", 2.5)
 		return
 	if r.size() > _direct_len + ROUTE_SLACK:
 		waypoints.erase(pos)
-		hud.banner("Too far out of the way: a route may run %d tiles longer than the direct way." % ROUTE_SLACK, 3.0)
+		hud.banner("Too far out of the way. A route can be at most %d tiles longer than the direct one." % ROUTE_SLACK, 3.0)
 		return
 	_apply_plan()
 
@@ -1252,7 +1252,7 @@ func _reveal_from(center: Vector2i, radius: int) -> void:
 			map.revealed[pos] = true
 			found += 1
 	map.refresh_notes()
-	hud.banner("From up here you can make out %d place%s worth a look. They're marked on the map." % [found, "" if found == 1 else "s"], 3.5)
+	hud.banner("From up here, you spot %d place%s worth a look. They're marked on the map." % [found, "" if found == 1 else "s"], 3.5)
 
 
 # ------------------------------------------------------------------ talk of the town
@@ -1345,9 +1345,9 @@ func _examine(k: int, i: int) -> void:
 			n["done"] = true
 			n["ready_day"] = day + Notables.STORY_REST_DAYS
 			if n["stage"] >= sd["stages"].size():
-				hud.banner("%s: the story here has run its course." % sd["title"], 3.5)
+				hud.banner("%s: nothing more happens here." % sd["title"], 3.5)
 			else:
-				hud.banner("%s (%d of %d). It won't stay like this. Come back in a few days." % [sd["title"], n["stage"], sd["stages"].size()], 3.5)
+				hud.banner("%s (%d of %d). Come back in a few days. Something will have changed." % [sd["title"], n["stage"], sd["stages"].size()], 3.5)
 			resume.call())
 		return
 	if n["type"] == "event":
@@ -1480,8 +1480,8 @@ func _arrive() -> void:
 	if lead != "" and Story.LEADS[lead].has("fight"):
 		hud.show_tip("")
 		hud.screens.say("The Oracleborn", [
-			"Pale stone underfoot. A throne, and a window of colored glass he has seen before, in dreams.",
-			"The light moves. Figures step out of it: afterimages of the last hour of his world, and they won't let him look.",
+			"Pale stone underfoot. A throne, and a window of colored glass. ...He's seen this place before, in his dreams.",
+			"The light shifts, and figures step out of it. Echoes of the last hour of his world... and they're trying to stop him from seeing!",
 		], func() -> void:
 			hero_hp = maxi(hero_hp, int(hero().stats()["hp"] * 0.75))  # he steadies himself before the hall
 			hud.tactics.start(Story.LEADS[lead]["fight"], hero(), hero_hp, supplies))
@@ -1502,7 +1502,7 @@ func _on_tactics_finished(won: bool, hp: int, result: Dictionary) -> void:
 	if not won:
 		_return_home("defeat")
 		return
-	hud.banner("The afterimages fade. The throne hall holds still.", 2.5)
+	hud.banner("The echoes fade away. The throne hall is still.", 2.5)
 	await get_tree().create_timer(1.0).timeout
 	_return_home("success")
 
@@ -1570,11 +1570,11 @@ func _return_home(outcome: String) -> void:
 		return
 	match outcome:
 		"success":
-			hud.banner("Home. The fragment fuses to your land and settles for 2 days." + fused_msg, 3.5)
+			hud.banner("Home at last! The fragment joins your land. It needs 2 days to settle." + fused_msg, 3.5)
 		"retreat":
-			hud.banner("Retreated with everything you carried.", 3.0)
+			hud.banner("You retreated safely, with everything you were carrying.", 3.0)
 		"defeat":
-			hud.banner("Defeated. Half the loot is lost, the glimpse drifted away, and %s is injured." % hero().short_name(), 4.0)
+			hud.banner("Defeated... Half the loot was lost, the glimpse drifted away, and %s is injured." % hero().short_name(), 4.0)
 
 
 func _maybe_survivors() -> void:
@@ -1821,7 +1821,7 @@ func on_heard(person: String, gives: Dictionary) -> void:
 		if gives.has(key):
 			var pos := map.place_lead(gives[key])
 			if pos != MaelstromMap.NONE:
-				hud.banner("New lead: %s. Look for the cyan marker in the fog." % Story.LEADS[gives[key]]["name"], 4.0)
+				hud.banner("New lead: %s! Look for the cyan marker in the fog." % Story.LEADS[gives[key]]["name"], 4.0)
 	if gives.has("item"):
 		var region: String = Story.PEOPLE[person]["region"]
 		heroes[region].give(gives["item"])
@@ -1843,12 +1843,12 @@ func _complete_lead(lead: String) -> void:
 			hud.screens.say("Reading the past: the throne hall", [
 				Story.CHRONICLE["throne_hall"]["text"],
 				"Vision: %s. %s" % [Story.VISIONS["kings_decision"]["name"], Story.VISIONS["kings_decision"]["text"]],
-				"Left behind in the hall: a lens of oracle glass and a royal guard's signet. Pell will want to hear.",
+				"Left behind in the hall: a lens of oracle glass and a royal guard's signet. Pell will want to hear about this.",
 			], Callable())
 		"cache":
 			hero().give("shield_drone")
 			stock["parts"] += 6
-			hud.banner("The cache: a shield drone and 6 Parts. The Documenter is pleased. (Camp)", 4.5)
+			hud.banner("The cache: a shield drone and 6 Parts! The Documenter is delighted. (Camp)", 4.5)
 		"cauldron":
 			hero().give("ember_ring")
 			stock["reagents"] += 6
@@ -2075,7 +2075,7 @@ func struct_preview(id: String, pos: Vector2i) -> String:
 	if gt != "":
 		lines.append(gt)
 	if c["layout"] == "graves" and id == "shrine":
-		lines.append("Beside a grave. It will be asking for something.")
+		lines.append("Beside a grave. It will draw attention.")
 	var reason := place_reason(id, pos)
 	lines.append(reason if reason != "" else "Click to build.")
 	return "\n".join(lines)
@@ -2120,7 +2120,7 @@ func place_structure(pos: Vector2i) -> void:
 	c["structure"] = {"id": id, "damaged": false, "dark": false, "built_day": day}
 	c.erase("lead")
 	if id == "shrine" and c["layout"] == "graves":
-		Story.add_omen("A shrine of oracle glass stands on a grave. Something has noticed the asking.")
+		Story.add_omen("A shrine of oracle glass now stands on a grave. Something out there has noticed.")
 	map.refresh(pos)
 	map.update_lights()
 	map._seams.queue_redraw()
@@ -2380,7 +2380,7 @@ func _after_ambush(_won: bool) -> void:
 		stock["parts"] += 4
 		_story_busy = false
 		switch_hero("engineer")
-		hud.banner("Chapter 2. The Engineer holds his ground with anchors. The Documenter will speak when it has something to say.", 5.0)
+		hud.banner("Chapter 2. The Engineer holds land with anchors. The Documenter will speak up when it has something to say.", 5.0)
 		save_game()
 		check_story())
 

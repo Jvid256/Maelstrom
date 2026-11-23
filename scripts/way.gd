@@ -486,7 +486,7 @@ func _hover_text(pos: Vector2i) -> String:
 	for k in _enemies:
 		var h: Node2D = _enemies[k]
 		if pick(h.position - Vector2(0, 1)) == pos:
-			return "%s\n%s" % [h.get_meta("names"), ["Looks manageable.", "Be wary.", "Dangerous.", "Deadly: this could kill you."][int(h.get_meta("danger"))]]
+			return "%s\n%s" % [h.get_meta("names"), ["Looks manageable.", "Be careful.", "This one's dangerous!", "This could kill you!"][int(h.get_meta("danger"))]]
 	if _notable_at.has(pos):
 		var kj: Array = _notable_at[pos]
 		var e: Dictionary = stretches[kj[0]]["notables"][_index_of(kj[0], pos)]

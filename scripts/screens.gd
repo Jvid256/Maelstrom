@@ -360,7 +360,7 @@ func _open_chronicle() -> void:
 				entries.append(["Omen %d" % n, o])
 				n += 1
 			if entries.is_empty():
-				_detail.text = "Nothing seen yet. The fog keeps its own counsel."
+				_detail.text = "No omens yet. Strange things you see out in the fog will be written here."
 		"Record":
 			_text(list, "Lines the Documenter has spoken, as it spoke them.", Hud.DIM)
 			for r in Documenter.record():

@@ -377,7 +377,7 @@ func _ready() -> void:
 	TownTalk._given().erase("tithe_box")
 	TownTalk.note_examined("tithe_box")
 	check(TownTalk.has_word("pell"), "Pell has a word about the tithe box")
-	check(main.town_chatter("pell").begins_with("A tithe box"), "and says it when greeted")
+	check(main.town_chatter("pell").begins_with("Your name was on a tithe list"), "and says it when greeted")
 	var rumour := ""
 	var known_before := 0
 	for pos in map.cells:
