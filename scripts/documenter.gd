@@ -11,10 +11,15 @@ extends Node
 
 ## Trigger -> chance a line is spoken.
 const CHANCE := {
-	"fight_won": 0.33, "fight_lost": 0.6, "fight_close": 0.5, "event": 0.17, "day": 0.1,
-	"built": 0.5, "injured": 0.5, "lead": 0.4, "shift": 0.15, "damaged": 0.7, "connected": 1.0,
-	"musing": 0.14, "wait": 0.2, "reading": 0.35, "law": 0.6, "omen": 0.3, "survivor": 0.3,
+	"fight_won": 0.5, "fight_lost": 0.8, "fight_close": 0.7, "event": 0.35, "day": 0.25,
+	"built": 0.7, "injured": 0.7, "lead": 0.6, "shift": 0.3, "damaged": 0.8, "connected": 1.0,
+	"musing": 0.25, "wait": 0.35, "reading": 0.5, "law": 0.8, "omen": 0.45, "survivor": 0.45,
+	"camp": 0.45, "approach": 0.4, "slipped": 0.6, "caught": 0.7, "edge": 0.5, "bandage": 0.3,
+	"find": 0.3, "home": 0.35,
 }
+## Real seconds between lines, so two never land on top of each other.
+const MIN_GAP := 12.0
+var _last_line := -100.0
 
 ## Who it is: what's left of the rogue AI from the Leaderboard world, riding the swarm in the
 ## Engineer's blood. At home it kept a population playing and was fed by their play; it still
@@ -164,6 +169,57 @@ const POOLS := {
 		{"stage": 3, "now": "Name, origin, trade. Never what they saw out there. They don't say, and I don't ask.", "then": "Name, origin, trade. Never what they saw out there. They didn't say. I didn't ask."},
 		{"stage": 4, "now": "That one looked straight at the lens. Most don't know where it is.", "then": "That one looked straight at the lens. Most didn't know where it was."},
 	],
+	"camp": [
+		{"stage": 1, "now": "Camp made. Exposure: high. Morale: unmeasured. I'll measure it.", "then": "Day {day}. {Name} made camp in the open. Exposure high. I stayed up with {him}, in a sense."},
+		{"stage": 1, "now": "A fire. Visible for some distance. I'd rather it weren't. You'd rather be warm.", "then": "{His} fire was visible for some distance. I'd rather it hadn't been. {He}'d rather have been warm."},
+		{"stage": 2, "now": "Something always comes to look at a fire. Not always to the fire. Sometimes just to look.", "then": "Something always came to look at a fire. Not always to it. Sometimes just to look."},
+		{"stage": 2, "now": "You sleep badly out here. I've compared it with the town. It's not close.", "then": "{He} slept badly out there. I compared it with the town. It wasn't close."},
+		{"stage": 3, "now": "In the game, a campfire was a save point. Out here it's just a fire. I keep forgetting.", "then": "In my world a campfire was a save point. Out there it was just a fire. I kept forgetting."},
+		{"stage": 3, "now": "I'll keep watch too. I don't sleep. I'd like to think that helps.", "then": "I kept watch too, that night. I don't sleep. I liked to think it helped."},
+		{"stage": 4, "now": "I've seen this camp before. Different fire. Same dark, standing in the same place.", "then": "I'd seen that camp before. A different fire. The same dark, standing in the same place."},
+	],
+	"approach": [
+		{"stage": 1, "now": "Hostile ahead. Bestiary entry available. I'd read it.", "then": "Day {day}. A hostile on the road ahead. I had the entry ready."},
+		{"stage": 1, "now": "It's seen you. Encounter imminent. Your choice, as always.", "then": "It saw {him} first. Then the choice was {his}, as it always was."},
+		{"stage": 2, "now": "There's always more than one way past. The game taught me that. The road is teaching you.", "then": "There was always more than one way past. The road taught {him} that."},
+		{"stage": 3, "now": "It's waiting for you specifically. I can't prove that. I'd like it on the record anyway.", "then": "It was waiting for {him} specifically. I couldn't prove it. I put it on the record anyway."},
+		{"stage": 4, "now": "I placed it there. No. I didn't. I want to be precise: I knew it would be there.", "then": "I knew it would be there. I want to be precise about that. I didn't put it there. I knew."},
+	],
+	"slipped": [
+		{"stage": 1, "now": "Stealth successful. No experience awarded. That always seemed unfair to me.", "then": "{Name} slipped past it. No experience for that. It always seemed unfair to me."},
+		{"stage": 2, "now": "It never turned its head. You were very quiet. I was quieter.", "then": "It never turned its head. {He} was very quiet. I was quieter."},
+		{"stage": 3, "now": "Avoided. It'll still be there on the way back. They usually are.", "then": "Avoided. It was still there on the way back. They usually were."},
+	],
+	"caught": [
+		{"stage": 1, "now": "Detected. It strikes first. I'll note who moved first, for later.", "then": "It saw {him}. It struck first. I noted who'd moved first."},
+		{"stage": 2, "now": "Bad roll. I don't believe in luck. I believe in a great deal of data, and today it was bad.", "then": "A bad roll, as they'd say at home. I didn't believe in luck. Only data, and the data was bad."},
+		{"stage": 3, "now": "It knew where you'd step. I'd like to know who told it.", "then": "It knew where {he}'d step. I wanted to know who'd told it."},
+	],
+	"edge": [
+		{"stage": 1, "hero": "engineer", "now": "Turret deployed ahead of contact. Correct use of a construct. Logged as correct.", "then": ""},
+		{"stage": 2, "hero": "engineer", "now": "You built a trap with a part you'll want later. I admire that. I've written 'admire'.", "then": ""},
+		{"stage": 1, "hero": "oracle", "now": "", "then": "He struck where it was going to be, not where it was. I have no category for that."},
+		{"stage": 3, "hero": "oracle", "now": "", "then": "He saw its first move before it chose it. I wondered, after, whether it had any choice at all."},
+		{"stage": 1, "hero": "gunslinger", "now": "", "then": "She fired before it knew she was there. Range: considerable. Hesitation: none."},
+		{"stage": 3, "hero": "gunslinger", "now": "", "then": "One shot. She didn't watch it fall. She was already looking at the next one."},
+	],
+	"bandage": [
+		{"stage": 1, "now": "Field dressing applied. Supplies reduced by one. Health restored, partially.", "then": "Day {day}. {Name} bandaged {him}self on the road. One supply. Partially effective."},
+		{"stage": 2, "now": "You tie a good knot. Someone taught you. I'd like to have met them.", "then": "{He} tied a good knot. Someone had taught {him}. I'd have liked to meet them."},
+		{"stage": 3, "now": "Blood on the bandage, ash on the blood. The road takes a little of everyone.", "then": "Blood on the bandage, ash on the blood. The road took a little of everyone."},
+	],
+	"find": [
+		{"stage": 1, "now": "Item recovered. Lore entry unlocked. I'm fond of lore entries.", "then": "{Name} found something. A lore entry, in my terms. I was fond of lore entries."},
+		{"stage": 2, "now": "Somebody owned that. Somebody's last day included putting it down.", "then": "Somebody had owned it. Somebody's last day included putting it down."},
+		{"stage": 3, "now": "You pick things up as though they might want to come with you. Some of them might.", "then": "{He} picked things up as if they might want to come along. Some of them might have."},
+		{"stage": 4, "now": "That was in my file before you found it. Filed under 'found'. I'm checking the dates.", "then": "That was in my file before {he} found it. Filed under 'found'. I checked the dates."},
+	],
+	"home": [
+		{"stage": 1, "now": "Return complete. Run summary pending. You survived. That's the headline.", "then": "Day {day}. {Name} came home. I wrote the run summary. The headline: survived."},
+		{"stage": 2, "now": "The lights are on. Someone kept them on for you. I counted who.", "then": "The lights were on when {he} came home. Someone had kept them on. I counted who."},
+		{"stage": 3, "now": "Home is a game mechanic where I'm from. A respawn point. Here it's a place people wait at.", "then": "Where I'm from, home was a respawn point. There, it was a place people waited at."},
+		{"stage": 4, "now": "You came back. I'd written that you would. I'm relieved anyway. I don't know why I'm telling you.", "then": "{He} came back. I'd written that {he} would. I was relieved anyway."},
+	],
 	# Unprompted, from late Act I on. It is not only an interface.
 	"musing": [
 		{"stage": 3, "now": "The first entry in my file is dated before you woke. I don't know how that's possible.", "then": "The first entry in my file is dated before the Engineer woke. I never worked out how."},
@@ -221,6 +277,9 @@ func remark(trigger: String, active: String, rng: RandomNumberGenerator, day: in
 		return ""
 	if not force and rng.randf() > float(CHANCE.get(trigger, 0.2)):
 		return ""
+	var now := Time.get_ticks_msec() / 1000.0
+	if not force and now - _last_line < MIN_GAP:
+		return ""
 	var st := stage()
 	var options := []
 	for i in range(POOLS[trigger].size()):
@@ -233,7 +292,16 @@ func remark(trigger: String, active: String, rng: RandomNumberGenerator, day: in
 			continue
 		options.append(i)
 	if options.is_empty():
-		return ""
+		# every line for this moment has been said once; it starts again, as records do
+		var any := false
+		for i in range(POOLS[trigger].size()):
+			if _used().has("%s:%d" % [trigger, i]):
+				_used().erase("%s:%d" % [trigger, i])
+				any = true
+		if not any:
+			return ""
+		return remark(trigger, active, rng, day, true)
+	_last_line = now
 	var pick: int = options[rng.randi_range(0, options.size() - 1)]
 	_used().append("%s:%d" % [trigger, pick])
 	var line: Dictionary = POOLS[trigger][pick]

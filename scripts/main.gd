@@ -639,11 +639,11 @@ func _build_way() -> void:
 		var start: int = way.stretches[k]["first"]
 		if start <= way_index:
 			if _encounters.has(k) and start + 2 > way_index:
-				way.place_encounter(k, _encounters[k])
+				way.place_encounter(k, _encounters[k], threat(_encounters[k]))
 			continue  # this stretch's luck was settled when it was first walked
 		if _enc_shaped.has(k) and _enc_shaped[k] == shaped:
 			if _encounters.has(k):
-				way.place_encounter(k, _encounters[k])
+				way.place_encounter(k, _encounters[k], threat(_encounters[k]))
 			continue
 		_enc_shaped[k] = shaped
 		_encounters.erase(k)
@@ -667,7 +667,7 @@ func _build_way() -> void:
 			var near := Bestiary.pool(w, 0)
 			ids.append(near[rng.randi_range(0, near.size() - 1)])
 		_encounters[k] = ids
-		way.place_encounter(k, ids)
+		way.place_encounter(k, ids, threat(ids))
 
 
 func _show_way() -> void:
@@ -846,7 +846,10 @@ func _make_camp(k: int) -> void:
 	if not map.glimpses[active].has(target) and not map.cells[target].has("lead"):
 		map.glimpses[active].append(target)  # the destination was protected; it's still there
 	var world_id: String = map.cells[route[k]]["world"] if map.cells.has(route[k]) else "eroded"
-	var night := {"actions": 2, "chance": NIGHT_EVENT_CHANCE, "used": {}, "world": world_id, "k": k, "was": was}
+	# a hot meal waiting at home steadies the hand: a mess hall in reach gives a third action
+	var actions := 3 if int(struct_fx(active).get("mess", 0)) > 0 else 2
+	Documenter.remark("camp", active, rng, day)
+	var night := {"actions": actions, "chance": NIGHT_EVENT_CHANCE, "used": {}, "world": world_id, "k": k, "was": was}
 	_camp_menu(night)
 
 
@@ -880,7 +883,11 @@ func _camp_menu(night: Dictionary) -> void:
 	options.append({"id": "watch", "label": "Keep watch till dawn (%s; the night is less likely to find you)" % watch_fx[0], "fx": watch_fx[1]})
 	options.append({"id": "sleep", "label": "Sleep: +3 health"})
 	var head := "Camp on the road through %s. Day %d. The fire is small and the dark is not." % [world_name, day]
-	if left == 1:
+	if left == 3:
+		head += " The mess hall's rations go further than road food: three things before you sleep."
+	elif left == 2 and night["actions"] == 3 and night["used"].size() == 1:
+		head = "The fire's settled. Time for two more things before you sleep."
+	elif left == 1:
 		head = "The fire's settled. Time for one more thing before you sleep."
 	elif left == 0:
 		head = "That's all the night has room for. Watch, or sleep."
@@ -985,7 +992,9 @@ func _scout_ahead(k: int) -> String:
 	var seen := []
 	for j in range(k + 1, mini(k + 3, route.size())):
 		if _encounters.has(j):
-			seen.append(" and ".join(_encounters[j].map(func(id): return Bestiary.enemy(id)["name"].to_lower())))
+			var what: String = " and ".join(_encounters[j].map(func(id): return Bestiary.enemy(id)["name"].to_lower()))
+			var d := threat(_encounters[j])
+			seen.append(what + ([""," (wary)", " (dangerous)", " (deadly)"][d]))
 		if map.cells.has(route[j]) and map.cells[route[j]].has("notables"):
 			map.cells[route[j]]["known"] = true
 	_buffs["scouted"] = true
@@ -1025,9 +1034,11 @@ func _approach(k: int) -> void:
 			if hero().charge > 0:
 				options.append({"id": "edge", "label": "Take the first shot (1 charge): the weak ones won't get up"})
 	options.append({"id": "back", "label": "Turn back for home"})
-	var text := "On the road ahead: %s. %s seen your light." % [names, "They've" if ids.size() > 1 else "It has"]
+	var danger := threat(ids)
+	var text := "On the road ahead: %s. %s seen your light. %s" % [names, "They've" if ids.size() > 1 else "It has", THREAT_WORDS[danger]]
 	if _first("hint_enemy"):
 		text += " There's no going round it on this road, but there's more than one way to meet it."
+	Documenter.remark("approach", active, rng, day)
 	hud.screens.choice("", text, options, func(i: int) -> void:
 		mode = was
 		var id: String = options[i]["id"]
@@ -1040,11 +1051,14 @@ func _approach(k: int) -> void:
 					_encounters.erase(k)
 					way.clear_encounter(k)
 					hud.banner("You keep to the dark, and it never turns its head.", 3.0)
+					Documenter.remark("slipped", active, rng, day)
 				else:
 					var hit := maxi(2, int(hero().stats()["hp"] * 0.12))
 					hero_hp = maxi(1, hero_hp - hit)
 					hud.banner("It sees you. It strikes first (-%d health)." % hit, 3.0)
+					Documenter.remark("caught", active, rng, day)
 			"edge":
+				Documenter.remark("edge", active, rng, day)
 				match active:
 					"oracle":
 						foresight -= 1
@@ -1073,6 +1087,68 @@ func _approach(k: int) -> void:
 		_refresh_hud())
 
 
+## Coming home: the home light swells to meet the hero, then settles. Warmer for a
+## good trip, dimmer for a hard one.
+func _homecoming(hero_id: String, outcome: String) -> void:
+	var g := Gradient.new()
+	g.set_color(0, Color(1, 0.8, 0.5, 1))
+	g.set_color(1, Color(1, 0.6, 0.3, 0))
+	var tex := GradientTexture2D.new()
+	tex.gradient = g
+	tex.fill = GradientTexture2D.FILL_RADIAL
+	tex.fill_from = Vector2(0.5, 0.5)
+	tex.fill_to = Vector2(1.0, 0.5)
+	tex.width = 128
+	tex.height = 128
+	var flare := Sprite2D.new()
+	flare.texture = tex
+	var mat := CanvasItemMaterial.new()
+	mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	flare.material = mat
+	flare.z_index = 12
+	flare.position = map.center_of(MaelstromMap.HOMES[hero_id]) + Vector2(0, -8)
+	var strength: float = {"success": 0.55, "retreat": 0.35, "defeat": 0.2}.get(outcome, 0.4)
+	flare.modulate = Color(1, 1, 1, 0)
+	flare.scale = Vector2(0.4, 0.3)
+	map.add_child(flare)
+	var tw := flare.create_tween()
+	tw.tween_property(flare, "modulate:a", strength, 0.6).set_trans(Tween.TRANS_SINE)
+	tw.parallel().tween_property(flare, "scale", Vector2(2.2, 1.5), 1.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tw.tween_property(flare, "modulate:a", 0.0, 1.4).set_trans(Tween.TRANS_SINE)
+	tw.tween_callback(flare.queue_free)
+	if outcome == "success":
+		Documenter.remark("home", hero_id, rng, day)
+
+
+## How dangerous what waits on the road is to the hero in play right now: 0 easy,
+## 1 wary, 2 dangerous, 3 deadly. Compares how long each side would take to wear the other down.
+func threat(ids: Array) -> int:
+	var st: Dictionary = hero().stats()
+	var atk := maxf(1.0, float(st.get("atk", 3)))
+	# what the stat line leaves out: the Engineer's constructs, Alysia's guns
+	var extra := {"engineer": 1.6, "gunslinger": 3.0}.get(active, 1.0) as float
+	var spd := float(st.get("spd", 1.0)) * extra
+	var time_to_win := 0.0
+	var their_dps := 0.0
+	for id in ids:
+		var e: Dictionary = Bestiary.enemy(id)
+		var per_hit := maxf(ceilf(atk * 0.5), atk - float(e.get("armor", 0)))
+		time_to_win += float(e["hp"]) / (per_hit * spd)
+		var dmg := maxf(ceilf(e["atk"] * 0.4), e["atk"] - float(st.get("armor", 0)))
+		their_dps += dmg * float(e.get("spd", 1.0))
+	var share := time_to_win * their_dps / maxf(1.0, float(hero_hp))
+	if share >= 0.85:
+		return 3
+	if share >= 0.5:
+		return 2
+	if share >= 0.25:
+		return 1
+	return 0
+
+
+const THREAT_WORDS := ["It looks manageable.", "Be wary.", "This one is dangerous.", "This could kill you."]
+
+
 ## B on the road: a supply for a little health.
 func bandage() -> void:
 	if mode != "expedition" or way_phase != "walk" or supplies <= 0:
@@ -1085,6 +1161,7 @@ func bandage() -> void:
 	supplies -= 1
 	_heal(BANDAGE_HP)
 	_float_text(way.hero.global_position + Vector2(0, -24), "+%d health" % BANDAGE_HP)
+	Documenter.remark("bandage", active, rng, day)
 	_refresh_hud()
 
 
@@ -1288,7 +1365,7 @@ func _examine(k: int, i: int) -> void:
 		var gains: Dictionary = fx.get("res", {})
 		if not gains.is_empty():
 			_float_text(way.hero.global_position + Vector2(0, -24), _gain_text(gains))
-		Documenter.remark("event", active, rng, day)
+		Documenter.remark("find", active, rng, day)
 		resume.call())
 
 
@@ -1445,6 +1522,7 @@ func _return_home(outcome: String) -> void:
 	if target == MaelstromMap.NONE:
 		return
 	_leave_way()
+	_homecoming(active, outcome)
 	var lead: String = map.cells[target].get("lead", "") if map.cells.has(target) else ""
 	var tiles := []
 	if outcome == "success":
@@ -1583,6 +1661,9 @@ func _on_click(pos: Vector2i, button: int) -> void:
 			map.shape(pos, hand[selected])
 			hand.remove_at(selected)
 			selected = -1
+			var said := TileLines.line_for(pos, map.cells)
+			if said != "":
+				hud.banner(said, 4.5)
 			_refresh_hud()
 			_on_hover(pos, true)
 		else:
@@ -2194,6 +2275,10 @@ func check_story() -> void:
 			for h in heroes.values():
 				h.unlock_slot("ring2")
 			save_game())
+	else:
+		var talk := _next_conversation()
+		if not talk.is_empty():
+			_play_conversation(talk)
 
 
 ## One of the Documenter's story beats, spoken through the dialog box as a transmission.
@@ -2214,8 +2299,46 @@ func _on_connected(hero_id: String) -> void:
 	hud.banner("%s's people are welcome in the town. New structures can be built there." % heroes[hero_id].short_name(), 4.0)
 
 
+## A conversation between two heroes, if one is due. Lowest priority of the story beats.
+func _next_conversation() -> Dictionary:
+	var last: Dictionary = Story.state.get("talk_day", {})
+	for c in Story.CONVERSATIONS:
+		if Story.seen(c["id"]):
+			continue
+		var a: String = c["pair"][0]
+		var b: String = c["pair"][1]
+		if not heroes.has(a) or not heroes.has(b) or not map.connected(a, b):
+			continue
+		if not Story.seen(c["after"]) or not Story.met(c["needs"]):
+			continue
+		var key := "%s_%s" % [a, b]
+		var since: int = maxi(int(last.get(key, 0)), int(Story.state.get("met_day", {}).get(c["after"], 0)))
+		if day - since < int(c["gap"]):
+			continue
+		return c
+	return {}
+
+
+func _play_conversation(c: Dictionary) -> void:
+	_story_busy = true
+	hud.screens.scene(c["lines"], func() -> void:
+		Story.state["scenes_seen"].append(c["id"])
+		if not Story.state.has("talk_day"):
+			Story.state["talk_day"] = {}
+		Story.state["talk_day"]["%s_%s" % c["pair"]] = day
+		Story.state["met_day"] = Story.state.get("met_day", {})
+		Story.state["met_day"][c["id"]] = day
+		Story.add_chronicle(c["id"])
+		_story_busy = false
+		save_game()
+		check_story())
+
+
 func _play_scene(id: String, done: Callable) -> void:
 	Story.mark_seen(id)
+	if not Story.state.has("met_day"):
+		Story.state["met_day"] = {}
+	Story.state["met_day"][id] = day
 	_story_busy = true
 	hud.show_tip("")
 	hud.screens.scene(Story.SCENES[id], func() -> void:

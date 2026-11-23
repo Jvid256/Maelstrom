@@ -107,6 +107,17 @@ func _ready() -> void:
 			if main.hud.screens._choice_open:
 				main.hud.screens.resolve_choice(0)
 		main.mode = "expedition"
+	# something deadly waiting
+	var dk: int = mini(3, main.way.stretches.size() - 2)
+	if dk >= 1:
+		main._encounters[dk] = ["war_familiar", "war_familiar"]
+		main.way.place_encounter(dk, ["war_familiar", "war_familiar"], main.threat(["war_familiar", "war_familiar"]))
+		main.way_index = maxi(0, main._encounter_index(dk) - 4)
+		main.way.hero.position = main.way.hero_at(main.way_index)
+		main.camera.position = main.way.hero.global_position + Vector2(90, 0)
+		main.camera.reset_smoothing()
+		await get_tree().create_timer(0.3).timeout
+		await _snap("danger")
 	# meeting something on the road
 	for k in main._encounters.keys():
 		var ei: int = main._encounter_index(k)
@@ -174,6 +185,13 @@ func _ready() -> void:
 	main._refresh_hud()
 	main.focus_camera(true)
 	await _snap("pallas")
+	main.hud.screens.scene(Story.CONVERSATIONS[2]["lines"].slice(6, 10), Callable())
+	for i in range(3):
+		main.hud.screens.advance()
+	await _snap("conversation")
+	for i in range(4):
+		if main.hud.screens._dialog.visible:
+			main.hud.screens.advance()
 	main.active = "oracle"
 	main.fx.set_hero("oracle")
 	await get_tree().create_timer(1.8).timeout

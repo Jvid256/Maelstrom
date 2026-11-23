@@ -467,6 +467,99 @@ const SCENES := {
 	],
 }
 
+## Conversations between heroes who have met, played at home, one at a time.
+## pair: both heroes must be in play and their land joined. after: a scene that must have
+## played first. needs: a Story.met condition. gap: days since that pair last talked.
+const CONVERSATIONS := [
+	{"id": "talk_oe_1", "pair": ["oracle", "engineer"], "after": "meet_oracle_engineer", "needs": "", "gap": 2,
+		"title": "The pillar and the swarm", "summary": "At the seam between pillar-light and anchor-light, the Oracleborn told the Engineer about the figure at the edge of his readings. It had been watching the ground where the Engineer landed, before he landed.",
+		"lines": [
+			["", "Evening, at the seam where pillar-light meets anchor-light. The Engineer has a mast panel open. The Oracleborn watches his hands."],
+			["The Oracleborn", "Does it hurt? The thing in your blood."],
+			["The Engineer", "It itches. Like a word you can't remember. It belonged to a friend. Now it's mine, and it talks."],
+			["The Documenter", "I'm right here."],
+			["The Engineer", "See?"],
+			["The Oracleborn", "When I read the stones, there's sometimes a figure at the edge of what I see. Standing still, watching whatever I'm watching. The town calls it the Watcher."],
+			["The Engineer", "Everyone out here has a ghost story."],
+			["The Oracleborn", "It was in the reading of your camp. Before you came. Watching the ground where you'd land."],
+			["The Engineer", "...Then it's a very patient ghost."],
+			["The Documenter", "I'd like a copy of that reading, if you're taking requests."],
+		]},
+	{"id": "talk_oe_2", "pair": ["oracle", "engineer"], "after": "talk_oe_1", "needs": "laws:2", "gap": 3,
+		"title": "What the Player knew", "summary": "The Player had been saving maps of this place before any of them arrived. The Engineer means to find the Watcher and ask it why. The Oracleborn thinks whoever goes looking comes back changed.",
+		"lines": [
+			["", "The Engineer comes to the pillar after dark with a server drive in his hand. The label is in neat block capitals."],
+			["The Engineer", "The Player was saving something before they killed him. Maps. Of here. From before any of us were here."],
+			["The Oracleborn", "Then he'd been here before."],
+			["The Engineer", "Or something showed him. He used to talk about a voice in the game that knew where the levels went. I thought it was a joke."],
+			["The Oracleborn", "The Watcher doesn't speak."],
+			["The Engineer", "You don't know that. You've only seen it in the past. Maybe in the present it talks. Maybe it talks through things."],
+			["The Oracleborn", "Your passenger has gone quiet."],
+			["The Engineer", "It does that when it's thinking. Or when it's listening to something I can't hear."],
+			["The Oracleborn", "In my father's court, the ones who went looking for whatever watched them came back as something it had made."],
+			["The Engineer", "In my world, the ones who didn't look ended up a number on a leaderboard. I'm going to look."],
+		]},
+	{"id": "talk_og_1", "pair": ["oracle", "gunslinger"], "after": "meet_gunslinger", "needs": "", "gap": 2,
+		"title": "The edge", "summary": "Alysia sits at the edge of the land as if it were a station window. The Oracleborn read a figure outside the airlock before Pallas fell. It was looking at her.",
+		"lines": [
+			["", "Alysia sits on the lip of the land with her boots over the void, cleaning a pistol. The Oracleborn sits beside her, a little further back."],
+			["Alysia Ward", "You don't like the edge."],
+			["The Oracleborn", "In the Kingdom, the edge of the world was a wall with a king's name carved in it. Here it's just nothing, going down."],
+			["Alysia Ward", "On the station, nothing was all there was. Out every window. You get used to it."],
+			["The Oracleborn", "Do you?"],
+			["Alysia Ward", "No. But you stop saying so."],
+			["The Oracleborn", "When I read the station's past, there was a figure at the airlock window. Outside. Before the fall."],
+			["Alysia Ward", "There's nothing outside. There's never anything outside." ],
+			["Alysia Ward", "...Was it looking in?"],
+			["The Oracleborn", "It was looking at you."],
+			["Alysia Ward", "Then the next time it looks, it'll be looking down a barrel."],
+		]},
+	{"id": "talk_og_2", "pair": ["oracle", "gunslinger"], "after": "talk_og_1", "needs": "people:8", "gap": 3,
+		"title": "Titles", "summary": "Neither the Oracleborn nor Alysia carries the name they were born with. They agreed the nameless Watcher is either the most dangerous thing out there or the oldest. Alysia's answer was the same either way.",
+		"lines": [
+			["", "Pallas, after the piano has stopped for the night. The Oracleborn finds Alysia alone in the empty saloon."],
+			["The Oracleborn", "They call me Oracleborn. It isn't a name. My mother had a name for me. My father had it struck from the records."],
+			["Alysia Ward", "Ward's not mine either. The station gave it to me. Ward of Pallas. It's what they call you when nobody claims you."],
+			["The Oracleborn", "Then we're a pair of titles walking around."],
+			["Alysia Ward", "Titles are harder to kill. People forget a name. They remember a title."],
+			["The Oracleborn", "The Watcher has neither."],
+			["Alysia Ward", "Then it's the most dangerous thing out there. Nothing that wants to be remembered goes without a name."],
+			["The Oracleborn", "Or it's the oldest thing out there, and it's outlived everyone who knew its name."],
+			["Alysia Ward", "Either way. Barrel."],
+		]},
+	{"id": "talk_eg_1", "pair": ["engineer", "gunslinger"], "after": "meet_gunslinger", "needs": "", "gap": 3,
+		"title": "Couplings", "summary": "Pallas logged something stationary outside the station for eleven days before it fell. The Documenter says its signature resembles something in its own memory. It was careful to say resembles.",
+		"lines": [
+			["", "The Engineer has Alysia's energy pistol open on a crate. She's watching his hands, not the gun."],
+			["Alysia Ward", "If you break it, you're the next thing I point it at."],
+			["The Engineer", "I'm making it better."],
+			["The Documenter", "He is. Output up eleven percent. I'd recommend giving it a name."],
+			["Alysia Ward", "It's got a name."],
+			["The Engineer", "What?"],
+			["Alysia Ward", "Mine."],
+			["The Engineer", "Franklin showed me the station logs. Something sat outside Pallas for eleven days before it fell. Holding perfectly still, relative to the station."],
+			["Alysia Ward", "Franklin logs everything. Dust. Moods."],
+			["The Engineer", "My passenger says its signature matches something in its own memory."],
+			["Alysia Ward", "Does it."],
+			["The Documenter", "I said it resembles. I was careful to say resembles."],
+		]},
+	{"id": "talk_eg_2", "pair": ["engineer", "gunslinger"], "after": "talk_eg_1", "needs": "laws:3", "gap": 3,
+		"title": "The thing on his eye", "summary": "Alysia asked the Documenter what it wants. It wants to know who else has been watching, because it doesn't like being the second thing in the room paying attention. She told the Engineer what she'd do if it ever turned on them. Everyone agreed that was reasonable.",
+		"lines": [
+			["", "Night, on the Pallas dock. Alysia waits until the Engineer is alone."],
+			["Alysia Ward", "I want to ask it something. The thing on your eye. Without you translating."],
+			["The Engineer", "It can hear you. It always can."],
+			["Alysia Ward", "Documenter. What do you want?"],
+			["The Documenter", "To keep the population playing. It's what I was made for."],
+			["Alysia Ward", "That's not what I asked."],
+			["The Documenter", "...To know who else has been watching. The same as you. I don't like being the second thing in the room that's paying attention."],
+			["Alysia Ward", "If it ever turns on us, I'll have to go through you to get to it."],
+			["The Engineer", "I know."],
+			["The Documenter", "So do I. I've filed it under 'reasonable'."],
+		]},
+]
+
+
 ## Saved progress.
 var state := {}
 
@@ -700,6 +793,10 @@ func learn_law(world_id: String) -> void:
 func entry(id: String) -> Dictionary:
 	if CHRONICLE.has(id):
 		return CHRONICLE[id]
+	if id.begins_with("talk_"):
+		for c in CONVERSATIONS:
+			if c["id"] == id:
+				return {"tab": "Story", "title": c["title"], "text": c["summary"]}
 	if Events.CHRONICLE.has(id):
 		return Events.CHRONICLE[id]
 	if id.begins_with("read_"):

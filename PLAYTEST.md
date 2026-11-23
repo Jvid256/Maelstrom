@@ -101,3 +101,13 @@ Full write-up (findings, direction, prioritized next steps) lives in the Claude 
 - Every encounter is met with a choice about three steps out: head on, slip past (50% base, +25% scouted, +5%/Foresight for the Oracleborn, max 90%; failure costs 12% health), a hero edge (enemies open 30–35% hurt; Alysia's shot drops anything with 12 health or less), or turn back. Scripted testers always meet it head on.
 - Bandage on the road: B, a supply for +6 health.
 - Camp: two actions from rest / dress / forage / make supply / scout / hero action, then watch or sleep, then the night (forage +20% night chance, watch and reading the embers each halve it).
+
+## Voices, warnings, homecoming (Nov 23)
+
+- Camp: three actions with a working mess hall in reach.
+- Documenter: chances raised ~1.5–2×, eight new moments (camp, approach, slipped, caught, hero edge, bandage, find, home), pools refill once exhausted, 12 s minimum between lines.
+- Hero conversations: six (two per pair), gated on joined land, a prior scene, progress (laws, settlement size) and a 2–3 day gap since that pair last talked.
+- Tile lines: 26 first-placement lines, 15 world-meeting lines, once each per run.
+- Homecoming flare at the hero's home on return (strength by outcome).
+- Danger: threat rating 0–3 from time-to-kill vs damage taken against current health; signs over dangerous (!) and deadly (!!) enemies, in the approach choice and in scouting.
+- `--test`: all checks pass (day 58).

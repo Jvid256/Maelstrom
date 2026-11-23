@@ -309,7 +309,7 @@ const STRUCTURES := {
 		"ground_text": {"eroded": "Eroded Earth ground: the old mining rigs give up their couplings. +1 Parts a day."}},
 	"mess_hall": {"hero": "gunslinger", "name": "Mess hall", "limit": 1, "needs": "house",
 		"cost": {"food": 15, "salvage": 5},
-		"text": "Hot meals: survivors are twice as likely to join, and rest costs half. Wants a house beside it.",
+		"text": "Hot meals: survivors are twice as likely to join, rest costs half, and heroes in reach of it get a third action at camp. Wants a house beside it.",
 		"fx": {"mess": 1},
 		"ground": {"kingdom": {"food": 2}, "frozen": {"food": 1}},
 		"ground_text": {"kingdom": "Kingdom ground: the orchard roots come back. +2 Food a day.", "frozen": "Frozen Sun ground: the cold keeps. +1 Food a day."}},

@@ -372,7 +372,9 @@ func add_camp(k: int) -> void:
 
 
 ## Something from the fog, standing on the road ahead.
-func place_encounter(k: int, ids: Array) -> int:
+## danger: 0 easy, 1 wary, 2 dangerous, 3 deadly (main.threat). Dangerous and deadly
+## things carry a sign over them you can see from far down the road.
+func place_encounter(k: int, ids: Array, danger: int = 0) -> int:
 	var st: Dictionary = stretches[k]
 	var span: int = int(st["last"]) - int(st["first"])
 	var idx: int = int(st["first"]) + clampi(int(span * 0.6), 2, maxi(2, span - 1))
@@ -386,6 +388,18 @@ func place_encounter(k: int, ids: Array) -> int:
 		s.offset = Vector2(-5 + n * 10 if ids.size() > 1 else 0, -12)
 		s.material = _feat_mat
 		holder.add_child(s)
+	if danger >= 2:
+		var sign := Label.new()
+		sign.text = "!!" if danger == 3 else "!"
+		sign.add_theme_font_size_override("font_size", 11)
+		sign.add_theme_color_override("font_color", Color("#e0503c") if danger == 3 else Color("#e0a03c"))
+		sign.add_theme_color_override("font_outline_color", Color("#0c0a0e"))
+		sign.add_theme_constant_override("outline_size", 3)
+		sign.position = Vector2(-4 if danger == 2 else -6, -40)
+		sign.name = "Danger"
+		holder.add_child(sign)
+	holder.set_meta("danger", danger)
+	holder.set_meta("names", " and ".join(ids.map(func(id): return Bestiary.enemy(id)["name"])))
 	add_child(holder)
 	_enemies[k] = holder
 	_add_stop(idx - 1, {"type": "encounter", "s": k})
@@ -428,10 +442,14 @@ func _process(delta: float) -> void:
 			radius.append(40.0 + sin(_time * 7.0) * 2.0)
 			tint.append(Color("#f0a050"))
 	for k in _enemies:
+		var danger: int = int(_enemies[k].get_meta("danger", 0))
 		if small.size() < 24:
 			small.append(_enemies[k].global_position + Vector2(0, -10))
-			radius.append(14.0)
+			radius.append(14.0 + 5.0 * danger + (sin(_time * 4.0) * 3.0 if danger >= 2 else 0.0))
 			tint.append(Color("#c0453a"))
+		var sign: Node = _enemies[k].get_node_or_null("Danger")
+		if sign:
+			sign.position.y = -40 + roundf(sin(_time * 3.0) * 1.5)
 	dest_marker.position.y = center_of(path[path.size() - 1]).y - 30 + roundf(sin(_time * 2.0) * 2.0)
 	for m in [_ground_mat, _feat_mat]:
 		m.set_shader_parameter("light_pos1", lp)
@@ -465,6 +483,10 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _hover_text(pos: Vector2i) -> String:
+	for k in _enemies:
+		var h: Node2D = _enemies[k]
+		if pick(h.position - Vector2(0, 1)) == pos:
+			return "%s\n%s" % [h.get_meta("names"), ["Looks manageable.", "Be wary.", "Dangerous.", "Deadly: this could kill you."][int(h.get_meta("danger"))]]
 	if _notable_at.has(pos):
 		var kj: Array = _notable_at[pos]
 		var e: Dictionary = stretches[kj[0]]["notables"][_index_of(kj[0], pos)]

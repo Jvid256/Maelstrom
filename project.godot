@@ -23,6 +23,7 @@ Documenter="*res://scripts/documenter.gd"
 Notables="*res://scripts/notables.gd"
 TownTalk="*res://scripts/town_talk.gd"
 Ambience="*res://scripts/ambience.gd"
+TileLines="*res://scripts/tile_lines.gd"
 
 [display]
 

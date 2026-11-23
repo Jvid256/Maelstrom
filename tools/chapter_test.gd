@@ -363,6 +363,14 @@ func _ready() -> void:
 	await _wait_territory(300)
 	check(Story.flag("act1_done"), "Act I complete (scenes seen: %s)" % str(Story.state["scenes_seen"]))
 	check(main.camps_made >= 3, "heroes made camp on the road %d times" % main.camps_made)
+	var talks: Array = Story.state["scenes_seen"].filter(func(x): return String(x).begins_with("talk_"))
+	check(talks.size() >= 2, "heroes talked to each other at home: %s" % str(talks))
+	check(Story.state.get("tile_lines", []).size() >= 3, "the map spoke when land was shaped (%d lines)" % Story.state.get("tile_lines", []).size())
+	main.switch_hero("oracle")
+	main.hero_hp = main.hero().stats()["hp"]
+	check(main.threat(["drifter"]) == 0 and main.threat(["armored_man"]) == 3, "danger reads right: a drifter is easy, the armored man is deadly")
+	var lines_before: int = Documenter.record().size()
+	check(lines_before >= 15, "the Documenter has plenty to say (%d lines so far)" % lines_before)
 	# talk of the town
 	while TownTalk.has_word("pell"):
 		TownTalk.take_word("pell")
@@ -422,6 +430,8 @@ func _ready() -> void:
 		main.stock[r] += 40
 	var cap := await _build("capacitor")
 	check(cap != MaelstromMap.NONE, "a capacitor placed in the joined land, touching Leaderboard land or the mast")
+	var mess := await _build("mess_hall")
+	check(mess != MaelstromMap.NONE and int(main.struct_fx("oracle").get("mess", 0)) > 0, "a mess hall in the capital feeds the Oracleborn too: three actions at camp")
 	var power_fx: int = int(main.struct_fx("engineer").get("power", 0))
 	check(power_fx >= 1, "capacitor power reaches the Engineer through the joined land (+%d)" % power_fx)
 	var doc_now := Documenter.record().filter(func(r): return r.get("tense", "") == "now")
